@@ -73,6 +73,17 @@ module PgPartitioner
           end
         end
       end
+
+      def partition_table_names
+        sql = "SELECT child.relname
+               FROM pg_inherits
+               JOIN pg_class parent ON pg_inherits.inhparent = parent.oid
+               JOIN pg_class child ON pg_inherits.inhrelid = child.oid
+               WHERE parent.relname = '#{table_name}'
+               ORDER BY child.relname;"
+
+        execute_sql(sql).map { |row| row['relname'] }
+      end
     end
   end
 end

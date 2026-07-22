@@ -115,3 +115,9 @@ or
 ```ruby
 YourModel.create_next_quater_table
 ```
+
+4) You can get all partition table names for your model:
+
+```ruby
+YourModel.partition_table_names
+```
