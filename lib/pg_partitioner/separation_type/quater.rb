@@ -1,15 +1,15 @@
 module PgPartitioner
   module SeparationType
     module Quater
-      def create_current_quater_table
-        create_quater_table(Date.today)
+      def create_current_quater_table(autovacuum:)
+        create_quater_table(Date.today, autovacuum)
       end
 
-      def create_next_quater_table
-        create_quater_table(Date.today.next_quarter)
+      def create_next_quater_table(autovacuum:)
+        create_quater_table(Date.today.next_quarter, autovacuum)
       end
 
-      def create_quater_table(date = Date.today)
+      def create_quater_table(date = Date.today, autovacuum = true)
         date_start = date.at_beginning_of_quarter
         date_end = date.end_of_quarter.next_month.at_beginning_of_month
         partition_table_name = name_of_partition_table(date, type: :quater)
@@ -22,7 +22,7 @@ module PgPartitioner
         sql = "ALTER TABLE #{partition_table_name} ADD PRIMARY KEY (id);"
         execute_sql(sql)
 
-        disable_autovacuum(partition_table_name)
+        disable_autovacuum(partition_table_name) if autovacuum == false
         create_partition_indexes(partition_table_name)
         create_partition_named_indexes(partition_table_name)
         create_partition_unique_indexes(partition_table_name)

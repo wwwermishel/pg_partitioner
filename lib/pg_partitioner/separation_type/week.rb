@@ -1,12 +1,12 @@
 module PgPartitioner
   module SeparationType
     module Week
-      def create_current_week_table
-        create_week_table(Date.today)
+      def create_current_week_table(autovacuum: )
+        create_week_table(Date.today, autovacuum)
       end
 
-      def create_next_week_table
-        create_week_table(Date.today.next_week)
+      def create_next_week_table(autovacuum: )
+        create_week_table(Date.today.next_week, autovacuum)
       end
 
       def drop_old_week_table
@@ -15,7 +15,7 @@ module PgPartitioner
         drop_table(table_name)
       end
 
-      def create_week_table(date = Date.today)
+      def create_week_table(date = Date.today, autovacuum = true)
         date_start = date.at_beginning_of_week
         date_end = date.at_beginning_of_week.next_week
         partition_table_name = name_of_partition_table(date, type: :week)
@@ -28,7 +28,7 @@ module PgPartitioner
         sql = "ALTER TABLE #{partition_table_name} ADD PRIMARY KEY (id);"
         execute_sql(sql)
 
-        disable_autovacuum(partition_table_name)
+        disable_autovacuum(partition_table_name) if autovacuum == false
         create_partition_indexes(partition_table_name)
         create_partition_named_indexes(partition_table_name)
         create_partition_unique_indexes(partition_table_name)

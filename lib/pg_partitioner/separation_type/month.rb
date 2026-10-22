@@ -1,12 +1,12 @@
 module PgPartitioner
   module SeparationType
     module Month
-      def create_current_month_table
-        create_month_table(Date.today)
+      def create_current_month_table(autovacuum:)
+        create_month_table(Date.today, autovacuum:)
       end
 
-      def create_next_month_table
-        create_month_table(Date.today.next_month)
+      def create_next_month_table(autovacuum:)
+        create_month_table(Date.today.next_month, autovacuum)
       end
 
       def drop_old_month_table
@@ -15,7 +15,7 @@ module PgPartitioner
         drop_table(table_name)
       end
 
-      def create_month_table(date = Date.today)
+      def create_month_table(date = Date.today, autovacuum = true)
         date_start = date.at_beginning_of_month
         date_end = date.at_beginning_of_month.next_month
         partition_table_name = name_of_partition_table(date, type: :month)
@@ -28,7 +28,7 @@ module PgPartitioner
         sql = "ALTER TABLE #{partition_table_name} ADD PRIMARY KEY (id);"
         execute_sql(sql)
 
-        disable_autovacuum(partition_table_name)
+        disable_autovacuum(partition_table_name) if autovacuum == false
         create_partition_indexes(partition_table_name)
         create_partition_named_indexes(partition_table_name)
         create_partition_unique_indexes(partition_table_name)
